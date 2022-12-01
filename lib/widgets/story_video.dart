@@ -5,19 +5,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:video_player/video_player.dart';
 
-import '../utils.dart';
 import '../controller/story_controller.dart';
+import '../utils.dart';
 
 class VideoLoader {
   String url;
-
+  Widget placeholderWidget;
   File? videoFile;
 
   Map<String, dynamic>? requestHeaders;
 
   LoadState state = LoadState.loading;
 
-  VideoLoader(this.url, {this.requestHeaders});
+  VideoLoader(this.url, this.placeholderWidget, {this.requestHeaders});
 
   void loadVideo(VoidCallback onComplete) {
     if (this.videoFile != null) {
@@ -25,8 +25,8 @@ class VideoLoader {
       onComplete();
     }
 
-    final fileStream = DefaultCacheManager()
-        .getFileStream(this.url, headers: this.requestHeaders as Map<String, String>?);
+    final fileStream = DefaultCacheManager().getFileStream(this.url,
+        headers: this.requestHeaders as Map<String, String>?);
 
     fileStream.listen((fileResponse) {
       if (fileResponse is FileInfo) {
@@ -47,12 +47,12 @@ class StoryVideo extends StatefulWidget {
   StoryVideo(this.videoLoader, {this.storyController, Key? key})
       : super(key: key ?? UniqueKey());
 
-  static StoryVideo url(String url,
+  static StoryVideo url(String url, Widget placeholderWidget,
       {StoryController? controller,
       Map<String, dynamic>? requestHeaders,
       Key? key}) {
     return StoryVideo(
-      VideoLoader(url, requestHeaders: requestHeaders),
+      VideoLoader(url, placeholderWidget, requestHeaders: requestHeaders),
       storyController: controller,
       key: key,
     );
@@ -106,40 +106,18 @@ class StoryVideoState extends State<StoryVideo> {
   Widget getContentView() {
     if (widget.videoLoader.state == LoadState.success &&
         playerController!.value.isInitialized) {
-      return Center(
-        child: AspectRatio(
-          aspectRatio: playerController!.value.aspectRatio,
-          child: VideoPlayer(playerController!),
-        ),
-      );
+      return VideoPlayer(playerController!);
     }
 
-    return widget.videoLoader.state == LoadState.loading
-        ? Center(
-            child: Container(
-              width: 70,
-              height: 70,
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                strokeWidth: 3,
-              ),
-            ),
-          )
-        : Center(
-            child: Text(
-            "Media failed to load.",
-            style: TextStyle(
-              color: Colors.white,
-            ),
-          ));
+    return widget.videoLoader.placeholderWidget;
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black,
-      height: double.infinity,
-      width: double.infinity,
+      color: Colors.transparent,
+      height: MediaQuery.of(context).size.height * .40,
+      // width: double.infinity,
       child: getContentView(),
     );
   }
