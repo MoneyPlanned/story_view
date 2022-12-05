@@ -106,10 +106,18 @@ class StoryVideoState extends State<StoryVideo> {
   Widget getContentView() {
     if (widget.videoLoader.state == LoadState.success &&
         playerController!.value.isInitialized) {
-      return VideoPlayer(playerController!);
+      return Center(
+        child: AspectRatio(
+          aspectRatio: playerController!.value.aspectRatio,
+          child: VideoPlayer(playerController!),
+        ),
+      );
     }
 
-    return widget.videoLoader.placeholderWidget;
+    return Center(
+        child:
+            CircularProgressIndicator() //widget.videoLoader.placeholderWidget,
+        );
   }
 
   @override
@@ -117,7 +125,9 @@ class StoryVideoState extends State<StoryVideo> {
     return Container(
       color: Colors.transparent,
       height: MediaQuery.of(context).size.height * .40,
-      // width: double.infinity,
+      // height: MediaQuery.of(context).size.height,
+      // height: double.infinity,
+      width: double.infinity,
       child: getContentView(),
     );
   }
