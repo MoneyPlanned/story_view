@@ -233,11 +233,10 @@ class StoryItem {
     return StoryItem(
         Container(
           key: key,
-          color: Colors.transparent,
           child: Stack(
             children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(top: 150.0),
+              Align(
+                alignment: Alignment.center,
                 child: StoryVideo.url(
                   url,
                   placeholderWidget,
