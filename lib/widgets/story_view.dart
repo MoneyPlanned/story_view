@@ -4,11 +4,12 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:story_view/widgets/story_video.dart';
 
 import '../controller/story_controller.dart';
 import '../utils.dart';
 import 'story_image.dart';
-import 'story_video.dart';
 
 /// Indicates where the progress indicators should be placed.
 enum ProgressPosition { top, bottom, none }
@@ -36,10 +37,10 @@ class StoryItem {
   /// The page content
   final Widget view;
   StoryItem(
-      this.view, {
-        required this.duration,
-        this.shown = false,
-      });
+    this.view, {
+    required this.duration,
+    this.shown = false,
+  });
 
   /// Short hand to create text-only page.
   ///
@@ -87,8 +88,8 @@ class StoryItem {
           child: Text(
             title,
             style: textStyle?.copyWith(
-              color: contrast > 1.8 ? Colors.white : Colors.black,
-            ) ??
+                  color: contrast > 1.8 ? Colors.white : Colors.black,
+                ) ??
                 TextStyle(
                   color: contrast > 1.8 ? Colors.white : Colors.black,
                   fontSize: 18,
@@ -142,13 +143,13 @@ class StoryItem {
                   color: caption != null ? Colors.black54 : Colors.transparent,
                   child: caption != null
                       ? Text(
-                    caption,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  )
+                          caption,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
                       : SizedBox(),
                 ),
               ),
@@ -218,43 +219,38 @@ class StoryItem {
   /// Shorthand for creating page video. [controller] should be same instance as
   /// one passed to the `StoryView`
   factory StoryItem.pageVideo(
-      String url, {required String placeholderAssetPath,
-        required StoryController controller,
-        Key? key,
-        Duration? duration,
-        BoxFit imageFit = BoxFit.fitWidth,
-        String? caption,
-        bool shown = false,
-        Map<String, dynamic>? requestHeaders,
-      }) {
+    String url, {
+    required Widget placeholderWidget,
+    required StoryController controller,
+    required Widget bottomWidget,
+    Key? key,
+    Duration? duration,
+    BoxFit imageFit = BoxFit.fitWidth,
+    String? caption,
+    bool shown = false,
+    Map<String, dynamic>? requestHeaders,
+  }) {
     return StoryItem(
         Container(
           key: key,
-          color: Colors.pink,
           child: Stack(
             children: <Widget>[
-              StoryVideo.url(
-                url,
-                placeholderAssetPath,
-                controller: controller,
-                requestHeaders: requestHeaders,
+              Align(
+                alignment: Alignment.center,
+                child: StoryVideo.url(
+                  url,
+                  placeholderWidget,
+                  controller: controller,
+                  requestHeaders: requestHeaders,
+                ),
               ),
               SafeArea(
                 child: Align(
                   alignment: Alignment.bottomCenter,
                   child: Container(
                     width: double.infinity,
-                    margin: EdgeInsets.only(bottom: 24),
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                    color:
-                    caption != null ? Colors.black54 : Colors.transparent,
-                    child: caption != null
-                        ? Text(
-                      caption,
-                      style: TextStyle(fontSize: 15, color: Colors.white),
-                      textAlign: TextAlign.center,
-                    )
-                        : SizedBox(),
+                    color: Colors.transparent,
+                    child: bottomWidget,
                   ),
                 ),
               )
@@ -269,13 +265,13 @@ class StoryItem {
   /// or `NetworkImage`. However, the story continues to play while the image loads
   /// up.
   factory StoryItem.pageProviderImage(
-      ImageProvider image, {
-        Key? key,
-        BoxFit imageFit = BoxFit.fitWidth,
-        String? caption,
-        bool shown = false,
-        Duration? duration,
-      }) {
+    ImageProvider image, {
+    Key? key,
+    BoxFit imageFit = BoxFit.fitWidth,
+    String? caption,
+    bool shown = false,
+    Duration? duration,
+  }) {
     return StoryItem(
         Container(
           key: key,
@@ -303,16 +299,16 @@ class StoryItem {
                       vertical: 8,
                     ),
                     color:
-                    caption != null ? Colors.black54 : Colors.transparent,
+                        caption != null ? Colors.black54 : Colors.transparent,
                     child: caption != null
                         ? Text(
-                      caption,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    )
+                            caption,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.center,
+                          )
                         : SizedBox(),
                   ),
                 ),
@@ -328,14 +324,14 @@ class StoryItem {
   /// or `NetworkImage`. However, the story continues to play while the image loads
   /// up.
   factory StoryItem.inlineProviderImage(
-      ImageProvider image, {
-        Key? key,
-        Text? caption,
-        bool shown = false,
-        bool roundedTop = true,
-        bool roundedBottom = false,
-        Duration? duration,
-      }) {
+    ImageProvider image, {
+    Key? key,
+    Text? caption,
+    bool shown = false,
+    bool roundedTop = true,
+    bool roundedBottom = false,
+    Duration? duration,
+  }) {
     return StoryItem(
       Container(
         key: key,
@@ -409,9 +405,12 @@ class StoryView extends StatefulWidget {
   // Indicator Color
   final Color indicatorColor;
 
+  final VoidCallback onSkipClicked;
+
   StoryView({
     required this.storyItems,
     required this.controller,
+    required this.onSkipClicked,
     this.onComplete,
     this.onStoryShow,
     this.progressPosition = ProgressPosition.top,
@@ -466,28 +465,28 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
 
     this._playbackSubscription =
         widget.controller.playbackNotifier.listen((playbackStatus) {
-          switch (playbackStatus) {
-            case PlaybackState.play:
-              _removeNextHold();
-              this._animationController?.forward();
-              break;
+      switch (playbackStatus) {
+        case PlaybackState.play:
+          _removeNextHold();
+          this._animationController?.forward();
+          break;
 
-            case PlaybackState.pause:
-              _holdNext(); // then pause animation
-              this._animationController?.stop(canceled: false);
-              break;
+        case PlaybackState.pause:
+          _holdNext(); // then pause animation
+          this._animationController?.stop(canceled: false);
+          break;
 
-            case PlaybackState.next:
-              _removeNextHold();
-              _goForward();
-              break;
+        case PlaybackState.next:
+          _removeNextHold();
+          _goForward();
+          break;
 
-            case PlaybackState.previous:
-              _removeNextHold();
-              _goBack();
-              break;
-          }
-        });
+        case PlaybackState.previous:
+          _removeNextHold();
+          _goBack();
+          break;
+      }
+    });
 
     _play();
   }
@@ -619,7 +618,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Colors.transparent,
       child: Stack(
         children: <Widget>[
           _currentView,
@@ -652,70 +651,93 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
               ),
             ),
           ),
-          // Align(
-          //     alignment: Alignment.centerRight,
-          //     heightFactor: 1,
-          //     child: GestureDetector(
-          //       onTapDown: (details) {
-          //         widget.controller.pause();
-          //       },
-          //       onTapCancel: () {
-          //         widget.controller.play();
-          //       },
-          //       onTapUp: (details) {
-          //         // if debounce timed out (not active) then continue anim
-          //         if (_nextDebouncer?.isActive == false) {
-          //           widget.controller.play();
-          //         } else {
-          //           widget.controller.next();
-          //         }
-          //       },
-          //       onVerticalDragStart: widget.onVerticalSwipeComplete == null
-          //           ? null
-          //           : (details) {
-          //               widget.controller.pause();
-          //             },
-          //       onVerticalDragCancel: widget.onVerticalSwipeComplete == null
-          //           ? null
-          //           : () {
-          //               widget.controller.play();
-          //             },
-          //       onVerticalDragUpdate: widget.onVerticalSwipeComplete == null
-          //           ? null
-          //           : (details) {
-          //               if (verticalDragInfo == null) {
-          //                 verticalDragInfo = VerticalDragInfo();
-          //               }
-          //
-          //               verticalDragInfo!.update(details.primaryDelta!);
-          //
-          //               // TODO: provide callback interface for animation purposes
-          //             },
-          //       onVerticalDragEnd: widget.onVerticalSwipeComplete == null
-          //           ? null
-          //           : (details) {
-          //               widget.controller.play();
-          //               // finish up drag cycle
-          //               if (!verticalDragInfo!.cancel &&
-          //                   widget.onVerticalSwipeComplete != null) {
-          //                 widget.onVerticalSwipeComplete!(
-          //                     verticalDragInfo!.direction);
-          //               }
-          //
-          //               verticalDragInfo = null;
-          //             },
-          //     )),
-          // Align(
-          //   alignment: Alignment.centerLeft,
-          //   heightFactor: 1,
-          //   child: SizedBox(
-          //       child: GestureDetector(onTap: () {
-          //         widget.controller.previous();
-          //       }),
-          //       width: 70),
-          // ),
+          Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: EdgeInsets.only(
+                  bottom: 8.0, left: 24.0, right: 24.0, top: 56.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  SvgPicture.asset('assets/Intro/mp_logo_light.svg'),
+                  Spacer(),
+                  TextButton.icon(
+                    onPressed: widget.onSkipClicked,
+                    icon: Text(
+                      'Skip ',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    label: Icon(
+                      Icons.double_arrow_sharp,
+                      color: Colors.white,
+                      size: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
+      // child: Column(
+      //   mainAxisSize: MainAxisSize.min,
+      //   children: <Widget>[
+      //     Visibility(
+      //       visible: widget.progressPosition != ProgressPosition.none,
+      //       child: Align(
+      //         alignment: widget.progressPosition == ProgressPosition.top
+      //             ? Alignment.topCenter
+      //             : Alignment.bottomCenter,
+      //         child: SafeArea(
+      //           bottom: widget.inline ? false : true,
+      //           // we use SafeArea here for notched and bezeles phones
+      //           child: Container(
+      //             padding: EdgeInsets.symmetric(
+      //               horizontal: 16,
+      //               vertical: 24,
+      //             ),
+      //             child: PageBar(
+      //               widget.storyItems
+      //                   .map((it) => PageData(it!.duration, it.shown))
+      //                   .toList(),
+      //               this._currentAnimation,
+      //               key: UniqueKey(),
+      //               indicatorHeight: widget.inline
+      //                   ? IndicatorHeight.small
+      //                   : IndicatorHeight.large,
+      //               indicatorColor: widget.indicatorColor,
+      //             ),
+      //           ),
+      //         ),
+      //       ),
+      //     ),
+      //     Padding(
+      //       padding: EdgeInsets.only(bottom: 8.0, left: 24.0, right: 24.0),
+      //       child: Row(
+      //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      //         mainAxisSize: MainAxisSize.max,
+      //         children: [
+      //           SvgPicture.asset('assets/Intro/mp_logo_light.svg'),
+      //           Spacer(),
+      //           TextButton.icon(
+      //             onPressed: () async {},
+      //             icon: Text(
+      //               'Skip ',
+      //               style: TextStyle(color: Colors.white),
+      //             ),
+      //             label: Icon(
+      //               Icons.double_arrow_sharp,
+      //               color: Colors.white,
+      //               size: 12,
+      //             ),
+      //           ),
+      //         ],
+      //       ),
+      //     ),
+      //     _currentView,
+      //   ],
+      // ),
     );
   }
 }
@@ -738,12 +760,12 @@ class PageBar extends StatefulWidget {
   final Color indicatorColor;
 
   PageBar(
-      this.pages,
-      this.animation, {
-        this.indicatorHeight = IndicatorHeight.large,
-        this.indicatorColor = Colors.white,
-        Key? key,
-      }) : super(key: key);
+    this.pages,
+    this.animation, {
+    this.indicatorHeight = IndicatorHeight.large,
+    this.indicatorColor = Colors.white,
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -788,7 +810,7 @@ class PageBarState extends State<PageBar> {
             child: StoryProgressIndicator(
               isPlaying(it) ? widget.animation!.value : (it.shown ? 1 : 0),
               indicatorHeight:
-              widget.indicatorHeight == IndicatorHeight.large ? 5 : 3,
+                  widget.indicatorHeight == IndicatorHeight.large ? 5 : 3,
               indicatorColor: widget.indicatorColor,
             ),
           ),
@@ -807,10 +829,10 @@ class StoryProgressIndicator extends StatelessWidget {
   final Color indicatorColor;
 
   StoryProgressIndicator(
-      this.value, {
-        this.indicatorHeight = 5,
-        this.indicatorColor = Colors.white,
-      });
+    this.value, {
+    this.indicatorHeight = 5,
+    this.indicatorColor = Colors.white,
+  });
 
   @override
   Widget build(BuildContext context) {

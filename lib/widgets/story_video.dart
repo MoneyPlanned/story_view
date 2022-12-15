@@ -10,14 +10,14 @@ import '../utils.dart';
 
 class VideoLoader {
   String url;
-  String placeholderAssetPath;
+  Widget placeholderWidget;
   File? videoFile;
 
   Map<String, dynamic>? requestHeaders;
 
   LoadState state = LoadState.loading;
 
-  VideoLoader(this.url, this.placeholderAssetPath, {this.requestHeaders});
+  VideoLoader(this.url, this.placeholderWidget, {this.requestHeaders});
 
   void loadVideo(VoidCallback onComplete) {
     if (this.videoFile != null) {
@@ -47,12 +47,12 @@ class StoryVideo extends StatefulWidget {
   StoryVideo(this.videoLoader, {this.storyController, Key? key})
       : super(key: key ?? UniqueKey());
 
-  static StoryVideo url(String url, String placeholderAssetPath,
+  static StoryVideo url(String url, Widget placeholderWidget,
       {StoryController? controller,
       Map<String, dynamic>? requestHeaders,
       Key? key}) {
     return StoryVideo(
-      VideoLoader(url, placeholderAssetPath, requestHeaders: requestHeaders),
+      VideoLoader(url, placeholderWidget, requestHeaders: requestHeaders),
       storyController: controller,
       key: key,
     );
@@ -106,22 +106,78 @@ class StoryVideoState extends State<StoryVideo> {
   Widget getContentView() {
     if (widget.videoLoader.state == LoadState.success &&
         playerController!.value.isInitialized) {
-      return Center(
-        child: AspectRatio(
-          aspectRatio: playerController!.value.aspectRatio,
-          child: VideoPlayer(playerController!),
+      // return AspectRatio(
+      //   aspectRatio: playerController!.value.aspectRatio,
+      //   child: VideoPlayer(playerController!),
+      // );
+      // return SizedBox.expand(
+      //   child: Container(
+      //     color: Colors.yellow,
+      //     child: FittedBox(
+      //       fit: BoxFit.cover,
+      //       child: SizedBox(
+      //         width: playerController!.value.size.width ?? 0,
+      //         height: playerController!.value.size.height ?? 0,
+      //         child: VideoPlayer(playerController!),
+      //       ),
+      //     ),
+      //   ),
+      // );
+      // return FittedBox(
+      //   fit: BoxFit.cover,
+      //   child: SizedBox(
+      //     width: playerController!.value.aspectRatio,
+      //     height: 1,
+      //     child: VideoPlayer(playerController!),
+      //   ),
+      // );
+      // return SizedBox.expand(
+      //   child: FittedBox(
+      //     fit: BoxFit.fitWidth,
+      //     child: Transform.scale(
+      //       alignment: Alignment.center,
+      //       scale: 1.15,
+      //       child: SizedBox(
+      //         width: playerController!.value.size.width,
+      //         height: playerController!.value.size.height,
+      //         child: VideoPlayer(playerController!),
+      //       ),
+      //     ),
+      //   ),
+      // );
+      return FittedBox(
+        fit: BoxFit.cover,
+        child: SizedBox(
+          width: playerController!.value.size.width,
+          height: playerController!.value.size.height,
+          child: AspectRatio(
+            aspectRatio: playerController!.value.aspectRatio,
+            child: VideoPlayer(playerController!),
+          ),
         ),
       );
     }
 
-    return Image.asset(widget.videoLoader.placeholderAssetPath);
+    return widget.videoLoader.placeholderWidget;
+    // SizedBox.expand(
+    //   child: FittedBox(
+    //     fit: BoxFit.fitHeight,
+    //     child: Transform.scale(
+    //       alignment: Alignment.center,
+    //       scale: 1.0,
+    //       child: widget.videoLoader.placeholderWidget,
+    //     ),
+    //   ),
+    // )
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Colors.transparent,
-      height: double.infinity,
+      // height: MediaQuery.of(context).size.height * .40,
+      height: MediaQuery.of(context).size.height,
+      // height: double.infinity,
       width: double.infinity,
       child: getContentView(),
     );

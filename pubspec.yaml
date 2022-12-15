@@ -13,6 +13,8 @@ dependencies:
   rxdart: ^0.27.2
   video_player: ^2.0.0
   collection: ^1.15.0
+  iconsax: ^0.0.8
+  flutter_svg: ^1.1.6
 
 dev_dependencies:
   flutter_test:
