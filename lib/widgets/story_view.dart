@@ -653,28 +653,30 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
           ),
           Align(
             alignment: Alignment.topCenter,
-            child: Padding(
-              padding: EdgeInsets.only(
-                  bottom: 8.0, left: 24.0, right: 24.0, top: 56.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  SvgPicture.asset('assets/Intro/mp_logo_light.svg'),
-                  Spacer(),
-                  TextButton.icon(
-                    onPressed: widget.onSkipClicked,
-                    icon: Text(
-                      'Skip ',
-                      style: TextStyle(color: Colors.white),
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                    bottom: 8.0, left: 24.0, right: 24.0, top: 56.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    SvgPicture.asset('assets/Intro/mp_logo_light.svg'),
+                    Spacer(),
+                    TextButton.icon(
+                      onPressed: widget.onSkipClicked,
+                      icon: Text(
+                        'Skip ',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      label: Icon(
+                        Icons.double_arrow_sharp,
+                        color: Colors.white,
+                        size: 12,
+                      ),
                     ),
-                    label: Icon(
-                      Icons.double_arrow_sharp,
-                      color: Colors.white,
-                      size: 12,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
