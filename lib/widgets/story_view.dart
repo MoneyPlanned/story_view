@@ -656,7 +656,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
             child: SafeArea(
               child: Padding(
                 padding: EdgeInsets.only(
-                    bottom: 8.0, left: 24.0, right: 24.0, top: 56.0),
+                    bottom: 8.0, left: 24.0, right: 24.0, top: MediaQuery.of(context).size.height < 730 ? 30.0 :  56.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   mainAxisSize: MainAxisSize.max,
